@@ -7,7 +7,7 @@
                 name="title" 
                 ngModel
                 required
-                placeholder="Title"
+                placeholder="Post Title"
                 #title="ngModel"
             >
             <mat-error *ngIf="title.invalid">Please enter a post title.</mat-error>
@@ -19,6 +19,7 @@
                 name="content"
                 ngModel
                 required
+                placeholder="Post Content"
                 #content="ngModel">
             </textarea>
             <mat-error *ngIf="content.invalid">Please enter a post title.</mat-error>
