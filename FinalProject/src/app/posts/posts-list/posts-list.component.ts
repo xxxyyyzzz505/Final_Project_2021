@@ -17,14 +17,17 @@ export class PostsListComponent implements OnInit, OnDestroy {
   //   {title: 'Third Post', content: 'This is the third post\'s content'}
   // ]
   posts: Post[] = [];
+  isLoading = false;
   private postsSub: Subscription | undefined;
 
   constructor(public postsAPI: PostsService) { }
 
   ngOnInit(): void {
+    this.isLoading = true;
     this.postsAPI.getPosts();
     this.postsSub = this.postsAPI.getPostUpdateListener()
       .subscribe((response: Post[]) => {
+        this.isLoading = false;
         this.posts = response;
       });
   }
