@@ -1,6 +1,8 @@
 
 const express = require("express");
+const { url } = require("inspector");
 const multer = require("multer");
+const { createPostfix } = require("typescript");
 
 const Post = require('../models/post');
 
@@ -29,14 +31,22 @@ const storage = multer.diskStorage({
 });
 
 router.post("", multer({storage: storage}).single("image"), (request, response, next) => {
+    const url = request.protocol + '://' + request.get("host");
     const post = new Post({
         title: request.body.title,
-        content: request.body.content
+        content: request.body.content,
+        imagePath: url + "/images/" + request.file.filename
     });
     post.save().then(createdPost => {
         response.status(201).json({
             message: 'Post added successfully.',
-            postId : createdPost._id
+            post: {
+                // title: createdPost.title,
+                // content: createdPost.content,
+                // imagePath: createdPost.imagePath,
+                ...createdPost,
+                id: createdPost._id
+            }
         });
     }); 
 });

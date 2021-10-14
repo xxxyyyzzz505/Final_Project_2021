@@ -17,7 +17,7 @@ export class PostsCreateComponent implements OnInit {
   // enteredContent = '';
   private mode = 'create';
   private postId : any;
-  post: any;
+  post!: Post;
   isLoading = false;
   form: FormGroup;
   imagePreview: string = '';
@@ -49,7 +49,8 @@ export class PostsCreateComponent implements OnInit {
             this.post = {
               id: postData._id, 
               title: postData.title, 
-              content: postData.content
+              content: postData.content,
+              imagePath: ''
             };
             this.form.setValue({
               'title': this.post.title, 

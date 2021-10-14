@@ -31,6 +31,9 @@
             *ngIf="imagePreview !== '' && imagePreview && form.get('image')?.valid">
             <img [src]="imagePreview" [alt]="form.value.title">
         </div>
+        <mat-error *ngIf="form.get('image')?.invalid">
+            Please upload a picture in .png/.jpg/.jpeg format.
+        </mat-error>
         <mat-form-field>
             <textarea 
                 matInput 
