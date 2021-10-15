@@ -75,11 +75,25 @@ router.put(
 );
 
 router.get("",(request, response, next) => {
-    Post.find().then(docusments => {
+    const pageSize = +request.query.pagesize;
+    const currentPage = +request.query.page;
+    const postQuery = Post.find();
+    let fetchedPosts;
+    if (pageSize && currentPage) {
+        postQuery
+            .skip(pageSize * (currentPage - 1))
+            .limit(pageSize);
+    }
+    postQuery.then(docusments => {
         // console.log(docusments);
+        fetchedPosts = docusments;
+        return Post.count();
+    })
+    .then(count => {
         response.status(200).json({
             message: 'Posts fetched succesfully!',
-            posts: docusments
+            posts: fetchedPosts,
+            maxPosts: count
         });
     });  
 });
