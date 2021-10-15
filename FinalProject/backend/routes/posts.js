@@ -51,18 +51,28 @@ router.post("", multer({storage: storage}).single("image"), (request, response, 
     }); 
 });
 
-router.put("/:id", (request, response, next) => {
-    const post = new Post({
-        _id: request.body.id,
-        title: request.body.title,
-        content: request.body.content
-    });
-    Post.updateOne({_id: request.params.id}, post)
-        .then(result => {
-            console.log(result);
+router.put(
+    "/:id", 
+    multer({storage: storage}).single("image"), 
+    (request, response, next) => {
+        let imagePath = request.body.imagePath;
+        if (request.file) {
+            const url = request.protocol + '://' + request.get("host");
+            imagePath = url + "/images/" + request.file.filename
+        }
+        const post = new Post ({
+            _id: request.body.id,
+            title: request.body.title,
+            content: request.body.content,
+            imagePath: imagePath
+        });
+        // console.log(post);
+        Post.updateOne({ _id: request.params.id }, post).then(result => {
+            
             response.status(200).json({message: 'Update successful!'});
-        })
-});
+        });
+    }
+);
 
 router.get("",(request, response, next) => {
     Post.find().then(docusments => {
