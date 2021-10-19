@@ -5,6 +5,7 @@ const multer = require("multer");
 const { createPostfix } = require("typescript");
 
 const Post = require('../models/post');
+const checkAuth = require("../middleware/check-auth")
 
 const router = express.Router();
 
@@ -30,13 +31,18 @@ const storage = multer.diskStorage({
     }
 });
 
-router.post("", multer({storage: storage}).single("image"), (request, response, next) => {
-    const url = request.protocol + '://' + request.get("host");
-    const post = new Post({
-        title: request.body.title,
-        content: request.body.content,
-        imagePath: url + "/images/" + request.file.filename
-    });
+router.post(
+    "", 
+    checkAuth,
+    multer({storage: storage}).single("image"), 
+    (request, response, next) => {
+
+        const url = request.protocol + '://' + request.get("host");
+        const post = new Post({
+            title: request.body.title,
+            content: request.body.content,
+            imagePath: url + "/images/" + request.file.filename
+        });
     post.save().then(createdPost => {
         response.status(201).json({
             message: 'Post added successfully.',
@@ -49,10 +55,13 @@ router.post("", multer({storage: storage}).single("image"), (request, response, 
             }
         });
     }); 
-});
+    }
+);
 
+// Edit Posts:
 router.put(
     "/:id", 
+    checkAuth,
     multer({storage: storage}).single("image"), 
     (request, response, next) => {
         let imagePath = request.body.imagePath;
@@ -98,8 +107,8 @@ router.get("",(request, response, next) => {
     });  
 });
 
-// For editting:
-router.get("/:id", (request, response, next) => {
+// For deleting:
+router.get("/:id", checkAuth, (request, response, next) => {
     Post.findById(request.params.id).then(post => {
         if (post) {
             response.status(200).json(post);

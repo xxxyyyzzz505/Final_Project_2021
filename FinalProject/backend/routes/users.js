@@ -31,26 +31,37 @@ router.post("/signup", (request, response, next) => {
 });
 
 router.post("/login", (request, response, next) => {
-    User.findOne({ email: request.body.email }).then(user => {
-        if(!user) {
+    let fetchedUser;
+    User.findOne({ email: request.body.email })
+        .then(user => {
+            if(!user) {
+                return response.status(401).json({
+                    message: "Auth Failed."
+                });
+            }
+            fetchedUser = user;
+            return bcrypt.compare(request.body.password, fetchedUser.password);
+        })
+        .then(result => {
+            if (!result) {
+                return response.status(401).json({
+                    message: "Auth Failed."
+                });
+            }
+            const token = jwt.sign(
+                { email: fetchedUser.email, userId: fetchedUser._id }, 
+                'secret_this_should_be_longer', 
+                {expiresIn: "1h", }
+            );
+            response.status(200).json({
+                token: token
+            })
+        })
+        .catch(error => {
             return response.status(401).json({
                 message: "Auth Failed."
             });
-        }
-        return bcrypt.compare(request.body.password, user.password);
-    })
-    .then(result => {
-        if (!result) {
-            return response.status(401).json({
-                message: "Auth Failed."
-            });
-        }
-    })
-    .catch(error => {
-        return response.status(401).json({
-            message: "Auth Failed."
         });
-    });
 });
 
 module.exports = router;
