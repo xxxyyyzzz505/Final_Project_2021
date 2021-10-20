@@ -8,8 +8,7 @@ npm run start:server
 
 ## Admin Account
 
-email: admin@admin.com
-password: admin
+email: admin@admin.com  password: admin
 
 ## Development server
 
