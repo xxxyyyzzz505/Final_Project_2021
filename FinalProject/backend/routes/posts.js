@@ -41,7 +41,8 @@ router.post(
         const post = new Post({
             title: request.body.title,
             content: request.body.content,
-            imagePath: url + "/images/" + request.file.filename
+            imagePath: url + "/images/" + request.file.filename,
+            creator: request.userData.userId
         });
     post.save().then(createdPost => {
         response.status(201).json({
@@ -73,13 +74,20 @@ router.put(
             _id: request.body.id,
             title: request.body.title,
             content: request.body.content,
-            imagePath: imagePath
+            imagePath: imagePath,
+            creator: request.userData.userId
         });
         // console.log(post);
-        Post.updateOne({ _id: request.params.id }, post).then(result => {
-            
-            response.status(200).json({message: 'Update successful!'});
-        });
+        Post.updateOne(
+            { _id: request.params.id, creator: request.userData.userId }, 
+            post)
+            .then(result => {
+                if (result.nModified > 0) {
+                    response.status(200).json({message: 'Update successful!'});
+                } else {
+                    response.status(401).json({message: 'Not Authorized!'});
+                }
+            });
     }
 );
 
@@ -108,7 +116,7 @@ router.get("",(request, response, next) => {
 });
 
 // For deleting:
-router.get("/:id", checkAuth, (request, response, next) => {
+router.get("/:id", (request, response, next) => {
     Post.findById(request.params.id).then(post => {
         if (post) {
             response.status(200).json(post);
@@ -118,10 +126,15 @@ router.get("/:id", checkAuth, (request, response, next) => {
     })
 })
 
-router.delete("/:id", (request, response, next) => {
-    Post.deleteOne({_id: request.params.id}).then(result => {
-        console.log(result);
-        response.status(200).json({message: 'Post deleted!'});
+router.delete("/:id", checkAuth, (request, response, next) => {
+    Post.deleteOne({ _id: request.params.id, creator: request.userData.userId })
+        .then(result => {
+        // console.log(result);
+        if (result.n > 0) {
+            response.status(200).json({message: 'Post deleted!'});
+        } else {
+            response.status(401).json({message: 'Not Authorized!'});
+        }    
     });    
 });
 

@@ -12,6 +12,7 @@ export class AuthService {
   private token: string | undefined;
   private authStatusListener = new Subject<boolean>();
   private tokenTimer: any;
+  private userId: string | undefined;
 
   constructor(private http: HttpClient, private router: Router) { }
 
@@ -23,21 +24,27 @@ export class AuthService {
     return this.isAuthenticated
   }
 
+  getUserId() {
+    return this.userId;
+  }
+
   getAuthStatusListener() {
     return this.authStatusListener.asObservable();
   }
 
+  //sign up
   createUser(email: string, password: string) {
     const authData: AuthData = {email: email, password: password};
     this.http.post("http://localhost:3000/api/users/signup", authData)
       .subscribe(response => {
         console.log(response);
+        this.router.navigate(['/']);
       })
   } 
 
   login(email: string, password: string) {
     const authData: AuthData = {email: email, password: password};
-    this.http.post<{token: string, expiresIn: number}>("http://localhost:3000/api/users/login", authData)
+    this.http.post<{token: string, expiresIn: number, userId: string}>("http://localhost:3000/api/users/login", authData)
       .subscribe(response => {
         const token = response.token;
         this.token = token;
@@ -45,15 +52,17 @@ export class AuthService {
           const expiresInDuration = response.expiresIn;
           this.setAuthTimer(expiresInDuration);
           this.isAuthenticated = true;
+          this.userId = response.userId;
           this.authStatusListener.next(true);
           const now = new Date();
           const expirationDate = new Date(now.getTime() + expiresInDuration * 1000);
-          this.saveAuthData(token, expirationDate)
+          this.saveAuthData(token, expirationDate, this.userId)
           this.router.navigate(['/']); //redirecting
         }  
       });
   }
 
+  // store user:
   autoAuthUser() {
     const authInformation = this.getAuthData();
     if (!authInformation) {
@@ -64,6 +73,7 @@ export class AuthService {
     if (expiresIn > 0) {
       this.token = authInformation?.token;
       this.isAuthenticated = true;
+      this.userId = authInformation.userId as string;
       this.setAuthTimer(expiresIn / 1000);  // sethAuthTimer() works with SECOND not ms
       this.authStatusListener.next(true);
     } 
@@ -74,6 +84,8 @@ export class AuthService {
     this.isAuthenticated = false;
     this.authStatusListener.next(false);
     clearTimeout(this.tokenTimer);
+    this.clearAuthData();
+    this.userId = undefined;
     this.router.navigate(['/']);
   }
 
@@ -85,24 +97,28 @@ export class AuthService {
     }, duration * 1000);
   }
 
-  private saveAuthData(token: string, expirationDate: Date ) {
+  private saveAuthData(token: string, expirationDate: Date, userId: string ) {
     localStorage.setItem('token', token);
-    localStorage.setItem('expiration', expirationDate.toISOString())
+    localStorage.setItem('expiration', expirationDate.toISOString());
+    localStorage.setItem("userId", userId)
   }
   private clearAuthData() {
     localStorage.removeItem("token");
     localStorage.removeItem("expiration");
+    localStorage.removeItem("userId");
   }
 
   private getAuthData() {
     const token = localStorage.getItem("token");
     const expirationDate = localStorage.getItem("expiration");
+    const userId = localStorage.getItem("userId");
     if (!token || !expirationDate) {
       return;
     } 
     return {
       token: token,
-      expirationDate: new Date(expirationDate)
+      expirationDate: new Date(expirationDate),
+      userId: userId
     }
   }
 }
