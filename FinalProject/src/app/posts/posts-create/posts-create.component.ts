@@ -1,6 +1,8 @@
+import { AuthService } from 'src/app/auth/auth.service';
+import { Subscription } from 'rxjs';
 import { Post } from './../post.interface';
 import { PostsService } from './../posts.service';
-import { Component, Input, OnInit, EventEmitter, Output } from '@angular/core';
+import { Component, Input, OnInit, EventEmitter, Output, OnDestroy } from '@angular/core';
 import { FormControl, FormGroup, NgForm, Validators } from '@angular/forms';
 import { ActivatedRoute, ParamMap } from '@angular/router';
 import { mimeType } from './mime-type.validator';
@@ -12,7 +14,7 @@ import { mimeType } from './mime-type.validator';
   templateUrl: './posts-create.component.html',
   styleUrls: ['./posts-create.component.css']
 })
-export class PostsCreateComponent implements OnInit {
+export class PostsCreateComponent implements OnInit, OnDestroy {
   // enteredTitle = '';
   // enteredContent = '';
   private mode = 'create';
@@ -21,20 +23,30 @@ export class PostsCreateComponent implements OnInit {
   isLoading = false;
   form: FormGroup;
   imagePreview: string = '';
+  private authStatusSub: Subscription;
 
   // @Output() postCreated = new EventEmitter<Post>();
 
-  constructor(public postsAPI: PostsService, public route: ActivatedRoute) { 
-    this.form = new FormGroup({
-      title: new FormControl(null, {
-        validators: [Validators.required]
-      }),
-      content: new FormControl(null, {validators: [Validators.required]}),
-      image: new FormControl(null, {
-        validators: [Validators.required],
-        asyncValidators: [mimeType]
-      })
-    });
+  constructor(
+    public postsAPI: PostsService, 
+    public route: ActivatedRoute,
+    public authAPI: AuthService
+    ) {
+      this.authStatusSub = this.authAPI.getAuthStatusListener().subscribe(
+        authStatus => {
+          this.isLoading = false;
+        }
+      );
+      this.form = new FormGroup({
+        title: new FormControl(null, {
+          validators: [Validators.required]
+        }),
+        content: new FormControl(null, {validators: [Validators.required]}),
+        image: new FormControl(null, {
+          validators: [Validators.required],
+          asyncValidators: [mimeType]
+        })
+      });
   }
 
   ngOnInit(): void {
@@ -97,6 +109,10 @@ export class PostsCreateComponent implements OnInit {
       this.imagePreview = reader.result as string;
     };
     reader.readAsDataURL(file);
+  }
+
+  ngOnDestroy() {
+    this.authStatusSub.unsubscribe();
   }
 
 }

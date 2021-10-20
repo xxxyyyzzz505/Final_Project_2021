@@ -36,7 +36,6 @@ router.post(
     checkAuth,
     multer({storage: storage}).single("image"), 
     (request, response, next) => {
-
         const url = request.protocol + '://' + request.get("host");
         const post = new Post({
             title: request.body.title,
@@ -54,6 +53,10 @@ router.post(
                 ...createdPost,
                 id: createdPost._id
             }
+        });
+    }).catch(error => {
+        response.status(500).json({
+            message: "Creating a post failed!"
         });
     }); 
     }
@@ -82,11 +85,17 @@ router.put(
             { _id: request.params.id, creator: request.userData.userId }, 
             post)
             .then(result => {
-                if (result.nModified > 0) {
+                console.log(result);
+                if (result.matchedCount > 0) {
                     response.status(200).json({message: 'Update successful!'});
                 } else {
                     response.status(401).json({message: 'Not Authorized!'});
                 }
+            })
+            .catch(error => {
+                response.status(500).json({
+                    message: "Couldn't update post!"
+                });
             });
     }
 );
@@ -112,30 +121,46 @@ router.get("",(request, response, next) => {
             posts: fetchedPosts,
             maxPosts: count
         });
+    })
+    .catch(error => {
+        response.status(500).json({
+            message: "Fetching posts failed!"
+        })
     });  
 });
 
 // For deleting:
 router.get("/:id", (request, response, next) => {
-    Post.findById(request.params.id).then(post => {
-        if (post) {
-            response.status(200).json(post);
-        } else {
-            response.status(404).json({ message: 'Post not found!' });
-        }
-    })
+    Post.findById(request.params.id)
+        .then(post => {
+            if (post) {
+                response.status(200).json(post);
+            } else {
+                response.status(404).json({ message: 'Post not found!' });
+            }
+        })
+        .catch(error => {
+            response.status(500).json({
+                message: "Fetching posts failed!"
+            })
+        });  
 })
 
 router.delete("/:id", checkAuth, (request, response, next) => {
     Post.deleteOne({ _id: request.params.id, creator: request.userData.userId })
         .then(result => {
         // console.log(result);
-        if (result.n > 0) {
-            response.status(200).json({message: 'Post deleted!'});
-        } else {
-            response.status(401).json({message: 'Not Authorized!'});
-        }    
-    });    
+            if (result.deletedCount > 0) {
+                response.status(200).json({message: 'Post deleted!'});
+            } else {
+                response.status(401).json({message: 'Not Authorized!'});
+            }    
+        })
+        .catch(error => {
+            response.status(500).json({
+                message: "Deleting posts failed!"
+            })
+        });    
 });
 
 module.exports = router;
