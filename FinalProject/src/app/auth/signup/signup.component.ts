@@ -22,6 +22,7 @@ export class SignupComponent implements OnInit, OnDestroy {
   }
 
   onsignup(form: NgForm) {
+    // console.log(form.value)
     if (form.invalid) {
       return;
     }

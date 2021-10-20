@@ -23,7 +23,7 @@ export class PostsListComponent implements OnInit, OnDestroy {
   isLoading = false;
   private postsSub: Subscription | undefined;
   totalPosts = 0;
-  postPerPage = 2;
+  postPerPage = 5;
   currentPage = 1;
   pageSizeOptions = [1, 2, 5, 10];
   userId: string | undefined;

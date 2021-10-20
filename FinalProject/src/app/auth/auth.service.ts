@@ -89,7 +89,7 @@ export class AuthService {
     this.authStatusListener.next(false);
     clearTimeout(this.tokenTimer);
     this.clearAuthData();
-    this.userId = undefined;
+    this.userId = '';
     this.router.navigate(['/']);
   }
 
