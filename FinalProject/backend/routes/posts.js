@@ -85,7 +85,7 @@ router.put(
             { _id: request.params.id, creator: request.userData.userId }, 
             post)
             .then(result => {
-                console.log(result);
+                // console.log(result);
                 if (result.matchedCount > 0) {
                     response.status(200).json({message: 'Update successful!'});
                 } else {

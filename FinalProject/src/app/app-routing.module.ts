@@ -10,8 +10,16 @@ const routes: Routes = [
   { path: '', component: PostsListComponent },
   { path: 'create', component: PostsCreateComponent, canActivate: [AuthGuard] },
   { path: 'edit/:postId', component: PostsCreateComponent, canActivate: [AuthGuard] },
-  { path: 'login', component: LoginComponent },
-  { path: 'signup', component: SignupComponent }  
+  
+  // { path: 'login', component: LoginComponent },
+  // { path: 'signup', component: SignupComponent }  
+
+  // Lazy loading
+  { 
+    path: 'auth', 
+    loadChildren: () => import('./auth/auth.module')
+      .then(m => m.AuthModule) 
+  }  
 ];
 
 @NgModule({
